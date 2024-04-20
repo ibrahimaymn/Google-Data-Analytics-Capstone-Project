@@ -1,9 +1,9 @@
--- Finding out difference between casual riders and members 
+-- Finding out difference between casual riders and members
 
--- average trip_duration
+--Average trip_duration
 SELECT 
   user_type,
-  AVG((EXTRACT(EPOCH FROM ended_at) - EXTRACT(EPOCH FROM started_at)) / 60) AS avg_trip_duration_mins
+  AVG((EXTRACT(EPOCH FROM ended_at) - EXTRACT(EPOCH FROM started_at)) / 60) AS avg_trip_duration_mins -- Extracting hours from both 'ended_at' and 'started_at' then subtracting them then converting to minutes
 FROM 
   year_2023
 GROUP BY
@@ -12,9 +12,9 @@ GROUP BY
 
 -- Which day of the week is them most busy for casual riders and member?
 SELECT 
-  TO_CHAR(started_at , 'Day') AS day,
-  SUM(CASE WHEN user_type = 'casual' THEN 1 ELSE 0 END) AS casual_trip_count,
-  SUM(CASE WHEN user_type = 'member' THEN 1 ELSE 0 END) AS member_trip_count
+  TO_CHAR(started_at , 'Day') AS day, -- Identify the day of the week from the date and types it 
+  SUM(CASE WHEN user_type = 'casual' THEN 1 ELSE 0 END) AS casual_trip_count, -- Casual riders trip count
+  SUM(CASE WHEN user_type = 'member' THEN 1 ELSE 0 END) AS member_trip_count  -- Members trip count
 FROM 
   year_2023
 GROUP BY 
@@ -25,7 +25,7 @@ GROUP BY
 SELECT 
   hours,
   SUM(CASE WHEN user_type = 'casual' THEN 1 ELSE 0 END) AS casual_trip_count,
-  SUM(CASE WHEN user_type = 'member' THEN 1 ELSE 0 END) AS member_trip_count
+  SUM(CASE WHEN user_type = 'member' THEN 1 ELSE 0 END) AS member_trip_count 
 FROM
 (SELECT  
   user_type,
@@ -42,15 +42,25 @@ FROM
     WHEN EXTRACT(HOUR FROM started_at) BETWEEN 18 AND 20 THEN 'From 6PM to 8PM'
     WHEN EXTRACT(HOUR FROM started_at) BETWEEN 20 AND 22 THEN 'From 8PM to 10PM'
     WHEN EXTRACT(HOUR FROM started_at) BETWEEN 22 AND 24 THEN 'From 10PM to 12AM'
-    END) AS hours
+    END) AS hours -- Classifying trip hours into groups 
 FROM 
   year_2023) hours_classification
 GROUP BY 
   hours;
--- both members and casual rider's busiest hours are From 4PM to 6PM and From 2PM to 4PM
+--both members and casual rider's busiest hours are From 2PM to 6PM
 
---Most used bike type
--- casual:
+-- Which months are the busiest
+SELECT 
+  TO_CHAR(started_at , 'Month') AS month_name, --identifying month name from the date
+  SUM(CASE WHEN user_type = 'casual' THEN 1 ELSE 0 END) AS casual_trip_count,
+  SUM(CASE WHEN user_type = 'member' THEN 1 ELSE 0 END) AS member_trip_count --counting trips
+FROM
+  year_2023
+GROUP BY 
+  TO_CHAR(started_at , 'Month');
+-- busiest months are June/July/August which represent summertime in Chicago
+
+-- Most used bike type
 SELECT 
   bike_type,
   SUM(CASE WHEN user_type = 'casual' THEN 1 ELSE 0 END) AS casual_bike_count,
@@ -59,13 +69,4 @@ FROM
   year_2023
 GROUP BY 
   bike_type;
-
---
-SELECT 
-  TO_CHAR(started_at , 'YYYY-MM-DD') AS date,
-  SUM(CASE WHEN user_type = 'casual' THEN 1 ELSE 0 END) AS casual_trip_count,
-  SUM(CASE WHEN user_type = 'member' THEN 1 ELSE 0 END) AS member_trip_count
-FROM
-  year_2023
-GROUP BY 
-  TO_CHAR(started_at , 'YYYY-MM-DD');
+-- electric and classic bikes are nearly used the same
